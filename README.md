@@ -15,12 +15,13 @@ Implementation :  https://www.hiascend.com/en/software/modelzoo/detail/2/6b2966
 Following sections introduce the default configurations and hyperparameters for AlexNet model.
 Optimizer: This model uses Momentum optimizer from Tensorflow with the following hyperparameters:
 
-Momentum : 0.9
+Momentum: 0.9
 Learning rate (LR) : 0.06
 LR schedule: cosine_annealing
 Batch size : 128*8 for 8 NPUs, 256 for single NPU 
 Weight decay : 0.0001. 
 Label smoothing = 0.1
+
 Momentum : Helps accelerate gradient descent in the relevant direction by dampening oscillator, thus leading to faster convergence.
 Learning Rate : Float value that determines the step size of gradient descent when optimizing toward the optimal.
 LR schedule : Scheduler that adjusts the learning rate during optimizing.
