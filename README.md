@@ -65,7 +65,24 @@ We implemented the following parameter changes to give our observations on chang
 
 2. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
-3. **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. Currently, the float32 type is not supported by convolution operators, such as Conv2D and DepthwiseConv2D. These operators are precision-insensitive and do not reduce the accuracy of the entire network.
+    - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
+    - **must_keep_origin_dtype**: Retains original precision. 
+    - **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. 
+    - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected
+
+## Experiment Results
+The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True` yields the best performace in this experiment setting. 
+
+| Precision Mode | Loss/Accuracy | Batch Time  |
+| ---------------|---------------|-------------|
+|  `allow_mix_precision`    |   = Baseline   | ~50ms  |
+|  `must_keep_origin_dtype` |   N/A          | NA     |
+|  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
+|  `force_fp16`             |   < Baseline   | ~50ms  |
+The figure below shows the Top1 accuracy curve under different precision mode:
+![alt text](./assets/experiment_results_1.png )
+ 
+
 
 ## Project Layout
 <hr/>
