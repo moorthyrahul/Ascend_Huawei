@@ -79,6 +79,7 @@ The following table compares the loss, accuracy and batch time obtained by using
 |  `must_keep_origin_dtype` |   N/A          | NA     |
 |  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
 |  `force_fp16`             |   < Baseline   | ~50ms  |
+
 The figure below shows the Top1 accuracy curve under different precision mode:
 ![alt text](./assets/experiment_results_1.png )
  
