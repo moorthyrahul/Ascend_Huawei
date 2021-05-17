@@ -55,27 +55,52 @@ The input image size for this model is 224 x 224 and are preprocessed before sen
 
 Note: You may implement your own preprocessing technique in `preprocessing.py`
 
-
 ## Experiments: 
 <hr/>
 
 We implemented the following parameter changes to give our observations on changes in batch time, loss convergence and training time:
 
-1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to The execution of an individual op (for some op types) can be parallelized on a pool of intra_op_parallelism_threads. 0 means the system picks an appropriate number.
+1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
+
+   - If there is an operation that can be parallelized internally, such as matrix multiplication (tf.matmul()), TensorFlow will execute it by scheduling tasks in a thread pool      with `intra_op_parallelism_threads` threads.
+   
+   - Operations can be independent in your TF graph because there is no directed path between them in the dataflow graph. TensorFlow will attempt to run them concurrently, using    a thread pool with `inter_op_parallelism_threads` threads.
+   
+   Default values for both are 0 i.e. the system picks the appropriate number. 
+   
+    **Results:**
+   
+   | Threads | Avg Batch Time  | Epochs |
+   | ---------------|---------------|-------------|
+   |  **`intra_op_parallelism_threads`= 0** **`inter_op_parallelism_threads`= 0** | ~5.3s  | 5 | 
+   |  **`intra_op_parallelism_threads` =2**  **`inter_op_parallelism_threads` = 5** |  ~5.7s  | 5 |
+   
+
 2. **allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
 
-   i. No GPU devices are registered or known
+   - No GPU devices are registered or known
    
-   ii. No GPU implementation for the operation
+   - No GPU implementation for the operation
    
    This option only works when your tensorflow is not GPU compiled. If your tensorflow is GPU supported, no matter if allow_soft_placement is set or not and even if you set          device as CPU.
-
+   
+   **Results:**
+   
    | Precision Mode |  Mode | Avg Batch Time  |
    | ---------------|---------------|-------------|
    |  `allow_soft_placement`    | True |  ~5.4s  |
    |  `allow_soft_placement` |  False |  ~5.5s   |
    
-3. **xla**:
+3. **XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
+
+     ![alt text](./assets/xla.png)
+     
+     Without XLA, the graph launches three kernels: one for the multiplication, one for the addition and one for the reduction. However, XLA can optimize the graph so that it          computes the result in a single kernel launch. It does this by "fusing" the addition, multiplication and reduction into a single GPU kernel. 
+     
+     The fused operation does not write out the intermediate values produced by y*z and x+y*z to memory; instead it "streams" the results of these intermediate              computations directly to their users while keeping them entirely in GPU registers. Fusion is XLA's single most important optimization and remvoing memory utilization is        one of the best ways to improve performance.
+  
+   **add details** 
+
 4. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
     - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
@@ -93,41 +118,67 @@ We implemented the following parameter changes to give our observations on chang
     |  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
     |  `force_fp16`             |   < Baseline   | ~50ms  |
 
-The figure below shows the Top1 accuracy curve under different precision mode:
+    The figure below shows the Top1 accuracy curve under different precision mode:
 
-<!-- <img align="center" src="./assets/experiment_results_1.png"> -->
-
-![alt text](./assets/experiment_results_1.png )
+   ![alt text](./assets/experiment_results_1.png)
  
-Top1 accuracy curse:
+   **Blue:** allow_fp32_to_fp16; **Green:** allow_mix_precision ; **Purple:** force_fp16
+   
+   Note, using ‘must_keep_origin_dtype’ results in Error:
 
-•	**Blue:** allow_fp32_to_fp16
-
-
-•	**Green:** allow_mix_precision
-
-
-•	**Purple:** force_fp16
-
-Note, using ‘must_keep_origin_dtype’ results in Error:
-
-![alt text](./assets/keep_origin_dtype.png )
+   ![alt text](./assets/keep_origin_dtype.png )
 
 5. **hcom_parallel (trainer.py):**
 
-Whether to enable the AllReduce gradient update and forward and backward parallel execution.
+   Whether to enable the AllReduce gradient update and forward and backward parallel execution.
 
-•	**True:** enabled
+   - **True:** enabled
 
-•	**False (default):** disabled
+   - **False (default):** disabled
+  
+   **Results**
+  
+   Tested on one NPU, no difference in either loss or batch time
 
+6. **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
 
-### Results
-Tested on one NPU, no difference in either loss or batch time
+  | Iterations_per_loop | Result – loss/accuracy | Result – Time(100 batches) |
+  | ---------------|---------------|-------------|
+  |  100    |   No change   | ~5.1s  |
+  |  1   |   No change   | ~5.4s  |
 
+7. **enable_data_pre_proc (trainer.py):**  Whether to offload the data preprocessing workload to the device side.
+  
+   •	True (default): enabled
+  
+   •	False: disabled
+  
+   **Results**
+  
+   ![alt text](./assets/data_pre_proc.jpg)
+   
+   **Purple:** enable_data_pre_proc (True) ; **Grey:** enable_data_pre_proc (False)
+  
+   | enable_data_pre_proc | Result – Batch Time |
+   | ---------------|---------------|
+   |  True    |  ~50ms |
+   |  False    |  ~20ms |
+  
+   Based on our observation when ‘enable_data_pre_proc’ is disabled, lowers the training time. However the loss does not converge appropriately. 
 
-## Project Layout
-<hr/>
+8. **dropout (alexnet.py) :**
+
+   Replace dropout in the original network with the corresponding AscendCL API
+   
+   **Results**
+   
+   ![alt text](./assets/dropout.jpg)
+   
+   | Type | Loss/Accuracy | Batch Time |
+   | ---------------|---------------|-------------|
+   |  npu_ops.dropout()    |  No change | ~510ms | 
+   |  tf.nn.dropout()    |  No change | ~550ms |
+  
+<!-- ## Project Layout
 Include directory structure here (tree command)
-
-TODO: reformat experiment, parametes from Derek's doc
+TODO: reformat experiment, parametes from Derek's doc -->
