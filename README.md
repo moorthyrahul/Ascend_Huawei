@@ -60,6 +60,17 @@ Note: You may implement your own preprocessing technique in `preprocessing.py`
 
 We implemented the following parameter changes to give our observations on changes in batch time, loss convergence and training time:
 
+**[parallel execution](#parallel-execution)**<br>
+**[allow_soft_placement](#device-allocation)**<br>
+**[XLA](#accelerated-linear-algebra)**<br>
+**[precision_mode](#precision-mode)**<br>
+**[hcom_parallel](#allreduce-gradient)**<br>
+**[iterations_per_loop](#iterations-per-loop)**<br>
+**[enable_data_pre_proc](#offload-data-preprocessing)**<br>
+**[dropout](#dropout)**<br>
+
+
+### Parallel Execution
 1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
 
    - If there is an operation that can be parallelized internally, such as matrix multiplication (tf.matmul()), TensorFlow will execute it by scheduling tasks in a thread pool      with `intra_op_parallelism_threads` threads.
@@ -75,7 +86,7 @@ We implemented the following parameter changes to give our observations on chang
    |  `intra_op_parallelism_threads`= 0 `inter_op_parallelism_threads`= 0 | ~5.3s  | 5 | 
    |  `intra_op_parallelism_threads` =2  `inter_op_parallelism_threads` = 5 |  ~5.7s  | 5 |
    
-
+### Device Allocation
 2. **allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
 
    - No GPU devices are registered or known
@@ -90,7 +101,8 @@ We implemented the following parameter changes to give our observations on chang
    | ---------------|---------------|-------------|
    |  `allow_soft_placement`    | True |  ~5.4s  |
    |  `allow_soft_placement` |  False |  ~5.5s   |
-   
+
+### Accelerated Linear Algebra   
 3. **XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
 
      ![alt text](./assets/xla.JPG)
@@ -100,7 +112,7 @@ We implemented the following parameter changes to give our observations on chang
      The fused operation does not write out the intermediate values produced by y*z and x+y*z to memory; instead it "streams" the results of these intermediate              computations directly to their users while keeping them entirely in GPU registers. Fusion is XLA's single most important optimization and remvoing memory utilization is        one of the best ways to improve performance.
   
    **add details** 
-
+### Precision Mode
 4. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
     - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
@@ -128,6 +140,7 @@ We implemented the following parameter changes to give our observations on chang
 
    ![alt text](./assets/keep_origin_dtype.JPG)
 
+### AllReduce Gradient
 5. **hcom_parallel (trainer.py):**
 
    Whether to enable the AllReduce gradient update and forward and backward parallel execution.
@@ -140,6 +153,7 @@ We implemented the following parameter changes to give our observations on chang
   
    Tested on one NPU, no difference in either loss or batch time
 
+### Iteration per loop
 6. **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
 
   | Iterations_per_loop | Result – loss/accuracy | Result – Time(100 batches) |
@@ -147,6 +161,8 @@ We implemented the following parameter changes to give our observations on chang
   |  100    |   No change   | ~5.1s  |
   |  1   |   No change   | ~5.4s  |
 
+
+### Offload Data Preprocessing
 7. **enable_data_pre_proc (trainer.py):**  Whether to offload the data preprocessing workload to the device side.
   
    •	True (default): enabled
@@ -166,6 +182,7 @@ We implemented the following parameter changes to give our observations on chang
   
    Based on our observation when ‘enable_data_pre_proc’ is disabled, lowers the training time. However the loss does not converge appropriately. 
 
+### Dropout
 8. **dropout (alexnet.py) :**
 
    Replace dropout in the original network with the corresponding AscendCL API
