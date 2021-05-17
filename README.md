@@ -71,7 +71,7 @@ We implemented the following parameter changes to give our observations on chang
 
 
 ### Parallel Execution
-1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
+**inter_op_parallelism_threads** & **inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
 
    - If there is an operation that can be parallelized internally, such as matrix multiplication (tf.matmul()), TensorFlow will execute it by scheduling tasks in a thread pool      with `intra_op_parallelism_threads` threads.
    
@@ -79,7 +79,7 @@ We implemented the following parameter changes to give our observations on chang
    
    Default values for both are 0 i.e. the system picks the appropriate number. 
    
-    **Results:**
+   **Results:**
    
    | Threads | Avg Batch Time  | Epochs |
    | ---------------|---------------|-------------|
@@ -87,7 +87,7 @@ We implemented the following parameter changes to give our observations on chang
    |  `intra_op_parallelism_threads` =2  `inter_op_parallelism_threads` = 5 |  ~5.7s  | 5 |
    
 ### Device Allocation
-2. **allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
+**allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
 
    - No GPU devices are registered or known
    
@@ -103,34 +103,38 @@ We implemented the following parameter changes to give our observations on chang
    |  `allow_soft_placement` |  False |  ~5.5s   |
 
 ### Accelerated Linear Algebra   
-3. **XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
+**XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
 
-     ![alt text](./assets/xla.JPG)
+   ```python
+   def model_fn(x, y, z):
+      return tf.reduce_sum(x + y * z) 
+   ```
+   <!-- ![alt text](./assets/xla.JPG)-->
      
-     Without XLA, the graph launches three kernels: one for the multiplication, one for the addition and one for the reduction. However, XLA can optimize the graph so that it          computes the result in a single kernel launch. It does this by "fusing" the addition, multiplication and reduction into a single GPU kernel. 
+   Without XLA, the graph launches three kernels: one for the multiplication, one for the addition and one for the reduction. However, XLA can optimize the graph so that it computes the result in a single kernel launch. It does this by "fusing" the addition, multiplication and reduction into a single GPU kernel. 
      
-     The fused operation does not write out the intermediate values produced by y*z and x+y*z to memory; instead it "streams" the results of these intermediate              computations directly to their users while keeping them entirely in GPU registers. Fusion is XLA's single most important optimization and remvoing memory utilization is        one of the best ways to improve performance.
+   The fused operation does not write out the intermediate values produced by y\*z and x+y\*z to memory; instead it "streams" the results of these intermediate computations directly to their users while keeping them entirely in GPU registers. Fusion is XLA's single most important optimization and remvoing memory utilization is one of the best ways to improve performance.
   
    **add details** 
 ### Precision Mode
-4. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
+**precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
-    - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
-    - **must_keep_origin_dtype**: Retains original precision. 
-    - **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. 
-    - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected.
+   - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
+   - **must_keep_origin_dtype**: Retains original precision. 
+   - **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. 
+   - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected.
     
-    **Results:**
-    The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True`         yields the best performace in this experiment setting. 
+   **Results:**
+   The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True`         yields the best performace in this experiment setting. 
 
-    | Precision Mode | Loss/Accuracy | Batch Time  |
-    | ---------------|---------------|-------------|
-    |  `allow_mix_precision`    |   = Baseline   | ~50ms  |
-    |  `must_keep_origin_dtype` |   N/A          | NA     |
-    |  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
-    |  `force_fp16`             |   < Baseline   | ~50ms  |
+   | Precision Mode | Loss/Accuracy | Batch Time  |
+   | ---------------|---------------|-------------|
+   |  `allow_mix_precision`    |   = Baseline   | ~50ms  |
+   |  `must_keep_origin_dtype` |   N/A          | NA     |
+   |  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
+   |  `force_fp16`             |   < Baseline   | ~50ms  |
 
-    The figure below shows the Top1 accuracy curve under different precision mode:
+   The figure below shows the Top1 accuracy curve under different precision mode:
 
    ![alt text](./assets/experiment_results_1.png)
  
@@ -154,7 +158,7 @@ We implemented the following parameter changes to give our observations on chang
    Tested on one NPU, no difference in either loss or batch time
 
 ### Iteration per loop
-6. **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
+**Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
 
   | Iterations_per_loop | Result – loss/accuracy | Result – Time(100 batches) |
   | ---------------|---------------|-------------|
@@ -163,10 +167,10 @@ We implemented the following parameter changes to give our observations on chang
 
 
 ### Offload Data Preprocessing
-7. **enable_data_pre_proc (trainer.py):**  Whether to offload the data preprocessing workload to the device side.
+**enable_data_pre_proc (trainer.py):**  Whether to offload the data preprocessing workload to the device side.
   
    •	True (default): enabled
-  
+
    •	False: disabled
   
    **Results**
@@ -177,22 +181,22 @@ We implemented the following parameter changes to give our observations on chang
   
    | enable_data_pre_proc | Result – Batch Time |
    | ---------------|---------------|
-   |  True    |  ~50ms |
-   |  False    |  ~20ms |
+   |  `True`    |  ~50ms |
+   |  `False`    |  ~20ms |
   
    Based on our observation when ‘enable_data_pre_proc’ is disabled, lowers the training time. However the loss does not converge appropriately. 
 
 ### Dropout
-8. **dropout (alexnet.py) :**
+**dropout (alexnet.py) :**
 
-   Replace dropout in the original network with the corresponding AscendCL API
+Replace dropout in the original network with the corresponding AscendCL API
    
-   **Results**
+**Results**
    
-   ![alt text](./assets/dropout.JPG)
+![alt text](./assets/dropout.JPG)
    
-   | Type | Loss/Accuracy | Batch Time |
-   | ---------------|---------------|-------------|
-   |  npu_ops.dropout()    |  No change | ~510ms | 
-   |  tf.nn.dropout()    |  No change | ~550ms |
+| Type | Loss/Accuracy | Batch Time |
+| ---------------|---------------|-------------|
+|  `npu_ops.dropout()`    |  No change | ~510ms | 
+|  `tf.nn.dropout()`    |  No change | ~550ms |
   
