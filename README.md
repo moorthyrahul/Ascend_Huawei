@@ -61,28 +61,69 @@ Note: You may implement your own preprocessing technique in `preprocessing.py`
 
 We implemented the following parameter changes to give our observations on changes in batch time, loss convergence and training time:
 
-1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: The execution of an individual op (for some op types) can be parallelized on a pool of intra_op_parallelism_threads. 0 means the system picks an appropriate number.
+1. **inter_op_parallelism_threads & inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to The execution of an individual op (for some op types) can be parallelized on a pool of intra_op_parallelism_threads. 0 means the system picks an appropriate number.
+2. **allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
 
-2. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
+   i. No GPU devices are registered or known
+   
+   ii. No GPU implementation for the operation
+   
+   This option only works when your tensorflow is not GPU compiled. If your tensorflow is GPU supported, no matter if allow_soft_placement is set or not and even if you set          device as CPU.
+
+   | Precision Mode |  Mode | Avg Batch Time  |
+   | ---------------|---------------|-------------|
+   |  `allow_soft_placement`    | True |  ~5.4s  |
+   |  `allow_soft_placement` |  False |  ~5.5s   |
+   
+3. **xla**:
+4. **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
     - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
     - **must_keep_origin_dtype**: Retains original precision. 
     - **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. 
-    - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected
+    - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected.
+    
+    **Results:**
+    The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True`         yields the best performace in this experiment setting. 
 
-## Experiment Results
-The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True` yields the best performace in this experiment setting. 
-
-| Precision Mode | Loss/Accuracy | Batch Time  |
-| ---------------|---------------|-------------|
-|  `allow_mix_precision`    |   = Baseline   | ~50ms  |
-|  `must_keep_origin_dtype` |   N/A          | NA     |
-|  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
-|  `force_fp16`             |   < Baseline   | ~50ms  |
+    | Precision Mode | Loss/Accuracy | Batch Time  |
+    | ---------------|---------------|-------------|
+    |  `allow_mix_precision`    |   = Baseline   | ~50ms  |
+    |  `must_keep_origin_dtype` |   N/A          | NA     |
+    |  `allow_fp32_to_fp16`     |   = Baseline   | ~170ms |
+    |  `force_fp16`             |   < Baseline   | ~50ms  |
 
 The figure below shows the Top1 accuracy curve under different precision mode:
+
+<!-- <img align="center" src="./assets/experiment_results_1.png"> -->
+
 ![alt text](./assets/experiment_results_1.png )
  
+Top1 accuracy curse:
+
+•	**Blue:** allow_fp32_to_fp16
+
+
+•	**Green:** allow_mix_precision
+
+
+•	**Purple:** force_fp16
+
+Note, using ‘must_keep_origin_dtype’ results in Error:
+
+![alt text](./assets/keep_origin_dtype.png )
+
+5. **hcom_parallel (trainer.py):**
+
+Whether to enable the AllReduce gradient update and forward and backward parallel execution.
+
+•	**True:** enabled
+
+•	**False (default):** disabled
+
+
+### Results
+Tested on one NPU, no difference in either loss or batch time
 
 
 ## Project Layout
