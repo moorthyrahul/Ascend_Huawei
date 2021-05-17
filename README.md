@@ -47,15 +47,14 @@ Label smoothing = 0.1
 
 ## Training dataset preprocessing
 <hr/>
-The input image size for this model is 224 x 224 and are preprocessed before sending them to the model for training. The preprocessing step include:
+The input image size for this model is 224 x 224 and are preprocessed before sending them to the model for training. The image preprocessing steps include (but are not limited to):
 
 - Random crop 
 - Horizontal flip
 - Normalization
 
-Note: You may implement your own preprocessing technique in `preprocessing.py`
 
-## Experiments: 
+## Experiments
 <hr/>
 
 We implemented the following parameter changes to give our observations on changes in batch time, loss convergence and training time:
@@ -97,10 +96,10 @@ We implemented the following parameter changes to give our observations on chang
    
    **Results:**
    
-   | Precision Mode |  Mode | Avg Batch Time  |
-   | ---------------|---------------|-------------|
-   |  `allow_soft_placement`    | True |  ~5.4s  |
-   |  `allow_soft_placement` |  False |  ~5.5s   |
+   | `allow_soft_placement`  | Avg Batch Time  |
+   | ---------------|-------------|
+   | `True` |  ~5.4s  |
+   | `False`|  ~5.5s   |
 
 ### Accelerated Linear Algebra   
 **XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
@@ -127,7 +126,7 @@ We implemented the following parameter changes to give our observations on chang
    **Results:**
    The following table compares the loss, accuracy and batch time obtained by using the four precision mode with the baseline. We see that setting `allow_mix_precision=True`         yields the best performace in this experiment setting. 
 
-   | Precision Mode | Loss/Accuracy | Batch Time  |
+   | **`precision_mode`** | Loss/Accuracy | Batch Time  |
    | ---------------|---------------|-------------|
    |  `allow_mix_precision`    |   = Baseline   | ~50ms  |
    |  `must_keep_origin_dtype` |   N/A          | NA     |
@@ -145,7 +144,7 @@ We implemented the following parameter changes to give our observations on chang
    ![alt text](./assets/keep_origin_dtype.JPG)
 
 ### AllReduce Gradient
-5. **hcom_parallel (trainer.py):**
+**hcom_parallel (trainer.py):**
 
    Whether to enable the AllReduce gradient update and forward and backward parallel execution.
 
@@ -160,7 +159,7 @@ We implemented the following parameter changes to give our observations on chang
 ### Iterations per loop
 **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
 
-  | Iterations_per_loop | Result – loss/accuracy | Result – Time(100 batches) |
+  | `iterations_per_loop` | Result – loss/accuracy | Result – Time(100 batches) |
   | ---------------|---------------|-------------|
   |  100    |   No change   | ~5.1s  |
   |  1   |   No change   | ~5.4s  |
@@ -179,7 +178,7 @@ We implemented the following parameter changes to give our observations on chang
    
    **Purple:** enable_data_pre_proc (True) ; **Grey:** enable_data_pre_proc (False)
   
-   | enable_data_pre_proc | Result – Batch Time |
+   | `enable_data_pre_proc` | Result – Batch Time |
    | ---------------|---------------|
    |  `True`    |  ~50ms |
    |  `False`    |  ~20ms |
