@@ -72,8 +72,8 @@ We implemented the following parameter changes to give our observations on chang
    
    | Threads | Avg Batch Time  | Epochs |
    | ---------------|---------------|-------------|
-   |  **`intra_op_parallelism_threads`= 0** **`inter_op_parallelism_threads`= 0** | ~5.3s  | 5 | 
-   |  **`intra_op_parallelism_threads` =2**  **`inter_op_parallelism_threads` = 5** |  ~5.7s  | 5 |
+   |  `intra_op_parallelism_threads`= 0 `inter_op_parallelism_threads`= 0 | ~5.3s  | 5 | 
+   |  `intra_op_parallelism_threads` =2  `inter_op_parallelism_threads` = 5 |  ~5.7s  | 5 |
    
 
 2. **allow_soft_placement (CreateSession.py)**: If this option is enabled (=True), the operation will be be placed on CPU if there:
@@ -93,7 +93,7 @@ We implemented the following parameter changes to give our observations on chang
    
 3. **XLA (Accelerated Linear Algebra)**: When a TensorFlow program is run, all of the operations are executed individually by the TensorFlow executor. Each TensorFlow operation has a precompiled GPU kernel implementation that the executor dispatches to. XLA provides an alternative mode of running models. Lets look at the following how XLA optimizing following TF computation: 
 
-     ![alt text](./assets/xla.png)
+     ![alt text](./assets/xla.JPG)
      
      Without XLA, the graph launches three kernels: one for the multiplication, one for the addition and one for the reduction. However, XLA can optimize the graph so that it          computes the result in a single kernel launch. It does this by "fusing" the addition, multiplication and reduction into a single GPU kernel. 
      
@@ -120,7 +120,7 @@ We implemented the following parameter changes to give our observations on chang
 
     The figure below shows the Top1 accuracy curve under different precision mode:
 
-   ![alt text](./assets/experiment_results_1.png)
+   ![alt text](./assets/experiment_results_1.JPG)
  
    **Blue:** allow_fp32_to_fp16; **Green:** allow_mix_precision ; **Purple:** force_fp16
    
@@ -155,7 +155,7 @@ We implemented the following parameter changes to give our observations on chang
   
    **Results**
   
-   ![alt text](./assets/data_pre_proc.jpg)
+   ![alt text](./assets/data_pre_proc.JPG)
    
    **Purple:** enable_data_pre_proc (True) ; **Grey:** enable_data_pre_proc (False)
   
@@ -172,13 +172,10 @@ We implemented the following parameter changes to give our observations on chang
    
    **Results**
    
-   ![alt text](./assets/dropout.jpg)
+   ![alt text](./assets/dropout.JPG)
    
    | Type | Loss/Accuracy | Batch Time |
    | ---------------|---------------|-------------|
    |  npu_ops.dropout()    |  No change | ~510ms | 
    |  tf.nn.dropout()    |  No change | ~550ms |
   
-<!-- ## Project Layout
-Include directory structure here (tree command)
-TODO: reformat experiment, parametes from Derek's doc -->
