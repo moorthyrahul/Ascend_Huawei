@@ -120,13 +120,13 @@ We implemented the following parameter changes to give our observations on chang
 
     The figure below shows the Top1 accuracy curve under different precision mode:
 
-   ![alt text](./assets/experiment_results_1.JPG)
+   ![alt text](./assets/experiment_results_1.png)
  
    **Blue:** allow_fp32_to_fp16; **Green:** allow_mix_precision ; **Purple:** force_fp16
    
    Note, using ‘must_keep_origin_dtype’ results in Error:
 
-   ![alt text](./assets/keep_origin_dtype.png )
+   ![alt text](./assets/keep_origin_dtype.JPG)
 
 5. **hcom_parallel (trainer.py):**
 
