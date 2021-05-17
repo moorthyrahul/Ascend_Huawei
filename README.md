@@ -157,7 +157,7 @@ We implemented the following parameter changes to give our observations on chang
   
    Tested on one NPU, no difference in either loss or batch time
 
-### Iteration per loop
+### Iterations per loop
 **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
 
   | Iterations_per_loop | Result – loss/accuracy | Result – Time(100 batches) |
