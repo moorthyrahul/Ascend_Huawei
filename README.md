@@ -92,7 +92,7 @@ We implemented the following parameter changes to give our observations on chang
    
    - No GPU implementation for the operation
    
-   This option only works when your tensorflow is not GPU compiled. If your tensorflow is GPU supported, no matter if allow_soft_placement is set or not and even if you set          device as CPU.
+   This option only works when your tensorflow is not GPU compiled. If your tensorflow is GPU supported value of `allow_soft_placement` (True or False) does not matter, even if the device is set as CPU. We observe no major difference in training time.
    
    **Results:**
    
@@ -127,7 +127,7 @@ We implemented the following parameter changes to give our observations on chang
 ### Precision Mode
 **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
 
-   - **allow_mix_precision**: Mixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
+   - **allow_mix_precision**: Mixed precision is allowed. For operators of the float32 data type on a network, the precision of some float32 operators can be automatically reduced to float16 based on the built-in optimization policy. In this way, the system performance is improved and the memory usage is reduced with little accuracy loss. Note that the Ascend AI Processor supports only float32 to float16 casting. It is recommended that Loss Scaling be enabled after mixed precision is enabled to compensate for the accuracy loss caused by precision reductionMixed precision is allowed to improve system performance and reduce memory usage with little accuracy loss.
    - **must_keep_origin_dtype**: Retains original precision. 
    - **allow_fp32_to_fp16**: The original precision is preferentially retained. If an operator does not support the float32 data type, the float16 precision is used. 
    - **force_fp16**: If an operator supports both float16 and float32 data types, float16 is forcibly selected.
@@ -154,6 +154,10 @@ We implemented the following parameter changes to give our observations on chang
 
 ### AllReduce Gradient
 **hcom_parallel (trainer.py):**
+
+   Firstly, let's understand importance of AllReduce algorithm in deep learning: 
+   
+   https://towardsdatascience.com/visual-intuition-on-ring-allreduce-for-distributed-deep-learning-d1f34b4911da
 
    Whether to enable the AllReduce gradient update and forward and backward parallel execution.
 
@@ -192,7 +196,7 @@ We implemented the following parameter changes to give our observations on chang
    |  `True`    |  ~50ms |
    |  `False`    |  ~20ms |
   
-   Based on our observation when ‘enable_data_pre_proc’ is disabled, lowers the training time. However the loss does not converge appropriately. 
+   Based on our observation when ‘enable_data_pre_proc’ is disabled, it does reduce the training time. However the loss does not converge, hence it may not be useful.
 
 ### Dropout
 **dropout (alexnet.py) :**
