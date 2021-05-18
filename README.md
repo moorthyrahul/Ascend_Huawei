@@ -120,7 +120,7 @@ We implemented the following parameter changes to give our observations on chang
   
   Changes were made in `CreateSession.py` and also set the environemnt variable to `XLA_FLAGS=--xla_hlo_profile`. The outcome shows that XLA is not supported for NPU based training interface.
   
-  <img align="center" src="./assets/xla_result2.JPG" width="700" height="250">
+  <img align="center" src="./assets/xla_result2.JPG" width="750" height="250">
   
   <!-- ![alt text](./assets/xla_result.JPG)-->
   
