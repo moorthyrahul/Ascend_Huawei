@@ -116,11 +116,14 @@ We implemented the following parameter changes to give our observations on chang
   
   **Results:**
   
-  As part of the experiment, we observed XLA is activated with GPU version of AlexnNet training. We tried activating the same (code changes made in CreateSession.py) for NPU trainig as well.
+  As part of the experiment, we observed XLA is activated with GPU version of AlexNet training. We tried activating the same for NPU trainig as well.
+  
+  Changes were made in `CreateSession.py` and also set the environemnt variable to `XLA_FLAGS=--xla_hlo_profile`. The outcome shows that XLA is not supported for NPU based training interface.
+  
+  ![alt text](./assets/xla_result.JPG)  
   
   
-  
-  
+    
    **add details** 
 ### Precision Mode
 **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
