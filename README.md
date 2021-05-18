@@ -114,6 +114,13 @@ We implemented the following parameter changes to give our observations on chang
      
    The fused operation does not write out the intermediate values produced by y\*z and x+y\*z to memory; instead it "streams" the results of these intermediate computations directly to their users while keeping them entirely in GPU registers. Fusion is XLA's single most important optimization and remvoing memory utilization is one of the best ways to improve performance.
   
+  **Results:**
+  
+  As part of the experiment, we observed XLA is activated with GPU version of AlexnNet training. We tried activating the same (code changes made in CreateSession.py) for NPU trainig as well.
+  
+  
+  
+  
    **add details** 
 ### Precision Mode
 **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
