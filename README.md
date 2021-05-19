@@ -68,15 +68,16 @@ We implemented the following parameter changes to give our observations on chang
 **[enable_data_pre_proc](#offload-data-preprocessing)**<br>
 **[dropout](#dropout)**<br>
 
+### Note: Batch time for the experiments is computed as (batch size * 100)
 
 ### Parallel Execution
-**inter_op_parallelism_threads** & **inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
+**intra_op_parallelism_threads** & **inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
 
-   - If there is an operation that can be parallelized internally, such as matrix multiplication (tf.matmul()), TensorFlow will execute it by scheduling tasks in a thread pool      with `intra_op_parallelism_threads` threads.
+   - If there is an operation that can be parallelized internally, such as matrix multiplication (tf.matmul()), TensorFlow will execute it by scheduling tasks in a thread pool with `intra_op_parallelism_threads` threads.
    
-   - Operations can be independent in your TF graph because there is no directed path between them in the dataflow graph. TensorFlow will attempt to run them concurrently, using    a thread pool with `inter_op_parallelism_threads` threads.
+   - Operations can be independent in your TF graph because there is no directed path between them in the dataflow graph. TensorFlow will attempt to run them concurrently, using a thread pool with `inter_op_parallelism_threads` threads.
    
-   Default values for both are 0 i.e. the system picks the appropriate number. 
+   Default values for both are 0 i.e. the system picks the appropriate number. We experimented by manually setting `intra_op_parallelism` = 2 and `inter_op_parallelism_threads`= 5.
    
    **Results:**
    
@@ -92,7 +93,7 @@ We implemented the following parameter changes to give our observations on chang
    
    - No GPU implementation for the operation
    
-   This option only works when your tensorflow is not GPU compiled. If your tensorflow is GPU supported value of `allow_soft_placement` (True or False) does not matter, even if the device is set as CPU. We observe no major difference in training time.
+   This option only works when your tensorflow is not GPU compiled. Since tensorflow is GPU supported the value of `allow_soft_placement` (True or False) does not make a difference. This applies even if the device is set as CPU. Therefore, we observe no major difference in batch time.
    
    **Results:**
    
@@ -167,7 +168,7 @@ We implemented the following parameter changes to give our observations on chang
   
    **Results**
   
-   Tested on one NPU, no difference in either loss or batch time
+   Tested on one NPU, no difference in either loss or batch time. We assume if multiple NPUs were available for distributed training, AllReduce parameter could make improvements in training time.
 
 ### Iterations per loop
 **Iteration_per_loop (train.py):** It is the number of iterations per training loop performed on the device side per sess.run() call. Training is performed according to the specified number of iterations per loop (iterations_per_loop) on the device side and then the result is returned to the host. This parameter can save unnecessary interactions between the host and device and reduce the training time consumption.
