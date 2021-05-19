@@ -68,7 +68,7 @@ We implemented the following parameter changes to give our observations on chang
 **[enable_data_pre_proc](#offload-data-preprocessing)**<br>
 **[dropout](#dropout)**<br>
 
-### Note: Batch time for the experiments is computed as (batch size * 100)
+#### Note: Batch time for the experiments is computed as (batch_size * no_of_batches). Here `batch_size`=256 and `no_of_bathces`=100.
 
 ### Parallel Execution
 **intra_op_parallelism_threads** & **inter_op_parallelism_threads (CreateSession.py)**: Used by tensorflow to parallelise execution.
