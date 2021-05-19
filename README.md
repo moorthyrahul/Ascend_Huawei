@@ -80,7 +80,7 @@ We implemented the following parameter changes to give our observations on chang
    
    **Results:**
    
-   | Threads | Avg Batch Time  | Epochs |
+   | Threads | Batch Time  | Epochs |
    | ---------------|---------------|-------------|
    |  `intra_op_parallelism_threads`= 0 `inter_op_parallelism_threads`= 0 | ~5.3s  | 5 | 
    |  `intra_op_parallelism_threads` =2  `inter_op_parallelism_threads` = 5 |  ~5.7s  | 5 |
@@ -96,7 +96,7 @@ We implemented the following parameter changes to give our observations on chang
    
    **Results:**
    
-   | `allow_soft_placement`  | Avg Batch Time  |
+   | `allow_soft_placement`  | Batch Time  |
    | ---------------|-------------|
    | `True` |  ~5.4s  |
    | `False`|  ~5.5s   |
@@ -209,6 +209,6 @@ Replace dropout in the original network with the corresponding AscendCL API
    
 | Type | Loss/Accuracy | Batch Time |
 | ---------------|---------------|-------------|
-|  `npu_ops.dropout()`    |  No change | ~510ms | 
-|  `tf.nn.dropout()`    |  No change | ~550ms |
+|  `npu_ops.dropout()`    |  No change | ~51ms | 
+|  `tf.nn.dropout()`    |  No change | ~55ms |
   
