@@ -77,7 +77,7 @@ We implemented the following parameter changes to give our observations on chang
    
    - Operations can be independent in your TF graph because there is no directed path between them in the dataflow graph. TensorFlow will attempt to run them concurrently, using a thread pool with `inter_op_parallelism_threads` threads.
    
-   Default values for both are 0 i.e. the system picks the appropriate number. We experimented by manually setting `intra_op_parallelism` = 2 and `inter_op_parallelism_threads`= 5.
+   Default values for both are 0 i.e. the system picks the appropriate number. We experimented by manually setting `intra_op_parallelism_threads` = 2 and `inter_op_parallelism_threads`= 5.
    
    **Results:**
    
@@ -93,7 +93,7 @@ We implemented the following parameter changes to give our observations on chang
    
    - No GPU implementation for the operation
    
-   This option only works when your tensorflow is not GPU compiled. Since tensorflow is GPU supported the value of `allow_soft_placement` (True or False) does not make a difference. This applies even if the device is set as CPU. Therefore, we observe no major difference in batch time.
+   This parameter only works when tensorflow is not GPU compiled. Since our tensorflow supports GPU, the value of `allow_soft_placement` (True or False) does not make a difference. This applies even if the device is set as CPU. Therefore, we observe no major difference in batch time.
    
    **Results:**
    
