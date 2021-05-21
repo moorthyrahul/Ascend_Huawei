@@ -121,9 +121,9 @@ We implemented the following parameter changes to give our observations on chang
   
   Changes were made in `CreateSession.py` and also set the environemnt variable to `XLA_FLAGS=--xla_hlo_profile`. The outcome shows that XLA is not supported for NPU based training interface.
   
-  <img align="center" src="./assets/xla_result3.JPG" height="400">
+  <img align="center" src="./assets/xla_result3.JPG" height="300">
   
-  ![alt text](./assets/xla_result3.JPG)
+  <!-- ![alt text](./assets/xla_result3.JPG) -->
   
 ### Precision Mode
 **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
