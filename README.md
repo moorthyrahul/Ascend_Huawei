@@ -123,7 +123,7 @@ We implemented the following parameter changes to give our observations on chang
   
   <img align="center" src="./assets/xla_result3.JPG" width="750" height="250">
   
-  <!-- ![alt text](./assets/xla_result.JPG)-->
+  ![alt text](./assets/xla_result3.JPG)
   
 ### Precision Mode
 **precision_mode (trainer.py)**: Mixed precision is the combined use of the float16 and float32 data types in training deep neural networks, which reduces memory usage and access frequency. Mixed precision training makes it easier to deploy larger networks without compromising the network accuracy with float32.
